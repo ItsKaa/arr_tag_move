@@ -118,7 +118,7 @@ def main():
             tags = movie.get('tags', [])
             if tag_id in tags and args.root in movie['rootFolderPath']:
                 # Check if the new root folder path is contained in the existing root folder path
-                logging.info(f"Movie '{movie['title']}' is already in the correct root folder.")
+                logging.debug(f"Movie '{movie['title']}' is already in the correct root folder.")
             elif len([id for id in tags if id in ignored_tag_ids]) > 0:
                 logging.debug(f"Ignoring movie '{movie['title']}' because it contains an ignored tag.")
             elif tag_id in tags:
