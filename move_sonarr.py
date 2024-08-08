@@ -118,7 +118,7 @@ def main():
             tags = series.get('tags', [])
             if tag_id in tags and args.root in series['rootFolderPath']:
                 # Check if the new root folder path is contained in the existing root folder path
-                logging.info(f"Series '{series['title']}' is already in the correct root folder.")
+                logging.debug(f"Series '{series['title']}' is already in the correct root folder.")
             elif len([id for id in tags if id in ignored_tag_ids]) > 0:
                 logging.debug(f"Ignoring series '{series['title']}' because it contains an ignored tag.")
             elif tag_id in tags:
@@ -128,7 +128,7 @@ def main():
                 else:
                     logging.error(f"Failed to update series: {series['title']} - Status Code: {status_code}")
             else:
-                logging.warning(f"Series '{series['title']}' does not have the '{args.tag}' tag.")
+                logging.debug(f"Series '{series['title']}' does not have the '{args.tag}' tag.")
 
 if __name__ == "__main__":
     main()
