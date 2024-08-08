@@ -19,6 +19,8 @@ parser.add_argument('--api', type=str,
                     help='The API key for your instance', required=True)
 parser.add_argument('--tag', type=str,
                     help='The tag to search for', required=True)
+parser.add_argument('--ignore-tag', type=str, nargs='+', dest='ignored_tags',
+                    help='Ignore the movie if it contains one of the tags in this collection. Example: --exclude-tag ignore_move_script documentary')
 parser.add_argument('--root', type=str,
                     help='The root folder to assign the found movies with the specified tag. Needs to exist in Radarr.', required=True)
 parser.add_argument('--test', type=str, default=None,
@@ -96,9 +98,14 @@ def main():
     tags = get_tags()
     root_folders = get_root_folders()
     tag_id = next((id for id, label in tags.items() if label == args.tag), None)
-
+    ignored_tag_ids = [id for id, label in tags.items() if label in args.ignored_tags]
+    
     if tag_id is None:
         logging.error(f"Could not find the tag '{args.tag}'.")
+        return
+    
+    if len(ignored_tag_ids) != len(args.ignored_tags):
+        logging.error(f"One or more ignored tags could not be found. Please check the configured tags. found {[label for _, label in tags.items() if label in args.ignored_tags]} but expected {args.ignored_tags}")
         return
     
     if not next((x for x in root_folders if x['path'] == args.root), None):
@@ -108,10 +115,13 @@ def main():
     for movie in movies_list:
         if not args.test or movie['title'] == args.test:
             logging.debug(f"Processing movie: {movie['title']}")
-            if tag_id in movie.get('tags', []) and args.root in movie['rootFolderPath']:
+            tags = movie.get('tags', [])
+            if tag_id in tags and args.root in movie['rootFolderPath']:
                 # Check if the new root folder path is contained in the existing root folder path
                 logging.info(f"Movie '{movie['title']}' is already in the correct root folder.")
-            elif tag_id in movie.get('tags', []):
+            elif len([id for id in tags if id in ignored_tag_ids]) > 0:
+                logging.debug(f"Ignoring movie '{movie['title']}' because it contains an ignored tag.")
+            elif tag_id in tags:
                 status_code = update_movie_root_folder(movie, tag_id, args.root)
                 if status_code == 202:
                     logging.info(f"Successfully updated root folder for movie: {movie['title']}")
