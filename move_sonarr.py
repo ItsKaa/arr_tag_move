@@ -98,7 +98,11 @@ def main():
     tag_id = next((id for id, label in tags.items() if label == args.tag), None)
 
     if tag_id is None:
-        logging.error("Required configuration not found.")
+        logging.error(f"Could not find the tag '{args.tag}'.")
+        return
+    
+    if not next((x for x in root_folders if x['path'] == args.root), None):
+        logging.error(f"Could not find the root folder '{args.root}'.")
         return
 
     for series in series_list:
